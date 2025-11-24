@@ -14,7 +14,137 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      doctors: {
+        Row: {
+          created_at: string
+          email: string
+          experience_years: number | null
+          hospital: string | null
+          id: string
+          name: string
+          specialization: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          experience_years?: number | null
+          hospital?: string | null
+          id?: string
+          name: string
+          specialization?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          experience_years?: number | null
+          hospital?: string | null
+          id?: string
+          name?: string
+          specialization?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      patients: {
+        Row: {
+          age: number
+          created_at: string
+          doctor_id: string
+          gender: string
+          id: string
+          medical_history: string | null
+          name: string
+          patient_code: string
+          risk_factors: string | null
+        }
+        Insert: {
+          age: number
+          created_at?: string
+          doctor_id: string
+          gender: string
+          id?: string
+          medical_history?: string | null
+          name: string
+          patient_code: string
+          risk_factors?: string | null
+        }
+        Update: {
+          age?: number
+          created_at?: string
+          doctor_id?: string
+          gender?: string
+          id?: string
+          medical_history?: string | null
+          name?: string
+          patient_code?: string
+          risk_factors?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patients_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      predictions: {
+        Row: {
+          created_at: string
+          doctor_id: string
+          doctor_notes: string | null
+          explanation: Json | null
+          feature_vector: Json | null
+          id: string
+          image_path: string | null
+          patient_id: string
+          predicted_stage: string
+          probability: number
+        }
+        Insert: {
+          created_at?: string
+          doctor_id: string
+          doctor_notes?: string | null
+          explanation?: Json | null
+          feature_vector?: Json | null
+          id?: string
+          image_path?: string | null
+          patient_id: string
+          predicted_stage: string
+          probability: number
+        }
+        Update: {
+          created_at?: string
+          doctor_id?: string
+          doctor_notes?: string | null
+          explanation?: Json | null
+          feature_vector?: Json | null
+          id?: string
+          image_path?: string | null
+          patient_id?: string
+          predicted_stage?: string
+          probability?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predictions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "predictions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

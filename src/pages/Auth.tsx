@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,32 +7,76 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export default function Auth() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/doctor/home");
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
       toast.success("Login successful!");
       navigate("/doctor/home");
-    }, 1000);
+    }
+    setIsLoading(false);
   };
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Registration successful! Please login.");
-    }, 1000);
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const hospital = formData.get("hospital") as string;
+    const specialization = formData.get("specialization") as string;
+    const experience = formData.get("experience") as string;
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: {
+          name,
+          hospital,
+          specialization,
+          experience_years: parseInt(experience) || 0,
+        },
+      },
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Registration successful! You can now log in.");
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -64,6 +108,7 @@ export default function Auth() {
                     <Label htmlFor="login-email">Email</Label>
                     <Input
                       id="login-email"
+                      name="email"
                       type="email"
                       placeholder="doctor@hospital.com"
                       required
@@ -73,6 +118,7 @@ export default function Auth() {
                     <Label htmlFor="login-password">Password</Label>
                     <Input
                       id="login-password"
+                      name="password"
                       type="password"
                       required
                     />
@@ -97,6 +143,7 @@ export default function Auth() {
                     <Label htmlFor="register-name">Full Name</Label>
                     <Input
                       id="register-name"
+                      name="name"
                       type="text"
                       placeholder="Dr. John Smith"
                       required
@@ -106,6 +153,7 @@ export default function Auth() {
                     <Label htmlFor="register-email">Email</Label>
                     <Input
                       id="register-email"
+                      name="email"
                       type="email"
                       placeholder="doctor@hospital.com"
                       required
@@ -115,35 +163,37 @@ export default function Auth() {
                     <Label htmlFor="register-hospital">Hospital/Clinic</Label>
                     <Input
                       id="register-hospital"
+                      name="hospital"
                       type="text"
                       placeholder="City General Hospital"
-                      required
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-specialization">Specialization</Label>
                     <Input
                       id="register-specialization"
+                      name="specialization"
                       type="text"
                       placeholder="Ophthalmology"
-                      required
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-experience">Years of Experience</Label>
                     <Input
                       id="register-experience"
+                      name="experience"
                       type="number"
                       min="0"
                       placeholder="10"
-                      required
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-password">Password</Label>
                     <Input
                       id="register-password"
+                      name="password"
                       type="password"
+                      minLength={6}
                       required
                     />
                   </div>

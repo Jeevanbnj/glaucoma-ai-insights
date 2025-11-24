@@ -10,11 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useDoctor } from "@/contexts/DoctorContext";
 
 export default function NewPatient() {
   const navigate = useNavigate();
+  const { doctor } = useDoctor();
   const [isLoading, setIsLoading] = useState(false);
   const [riskFactors, setRiskFactors] = useState<string[]>([]);
+  const [gender, setGender] = useState("");
 
   const availableRiskFactors = [
     "Family History",
@@ -36,15 +40,40 @@ export default function NewPatient() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!doctor) {
+      toast.error("Please log in to add patients");
+      return;
+    }
+
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+    const patientCode = formData.get("code") as string;
+    const age = parseInt(formData.get("age") as string);
+    const medicalHistory = formData.get("history") as string;
+
+    const { error } = await supabase.from("patients").insert({
+      doctor_id: doctor.id,
+      name,
+      patient_code: patientCode,
+      age,
+      gender,
+      medical_history: medicalHistory || null,
+      risk_factors: riskFactors.join(", ") || null,
+    });
+
+    setIsLoading(false);
+
+    if (error) {
+      console.error("Error adding patient:", error);
+      toast.error("Failed to add patient");
+    } else {
       toast.success("Patient added successfully!");
       navigate("/doctor/patients");
-    }, 1000);
+    }
   };
 
   return (
@@ -71,24 +100,24 @@ export default function NewPatient() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Patient Name *</Label>
-                  <Input id="name" placeholder="John Doe" required />
+                  <Input id="name" name="name" placeholder="John Doe" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="code">Patient Code / MRN *</Label>
-                  <Input id="code" placeholder="MRN-2024-XXX" required />
+                  <Input id="code" name="code" placeholder="MRN-2024-XXX" required />
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="age">Age *</Label>
-                  <Input id="age" type="number" min="0" max="120" placeholder="65" required />
+                  <Input id="age" name="age" type="number" min="0" max="120" placeholder="65" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="gender">Gender *</Label>
-                  <Select required>
+                  <Select value={gender} onValueChange={setGender} required>
                     <SelectTrigger id="gender">
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
@@ -105,6 +134,7 @@ export default function NewPatient() {
                 <Label htmlFor="history">Medical History</Label>
                 <Textarea
                   id="history"
+                  name="history"
                   placeholder="Enter relevant medical history..."
                   rows={4}
                 />
@@ -132,7 +162,7 @@ export default function NewPatient() {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button type="submit" disabled={isLoading} className="flex-1">
+                <Button type="submit" disabled={isLoading || !gender} className="flex-1">
                   {isLoading ? "Adding Patient..." : "Add Patient"}
                 </Button>
                 <Button

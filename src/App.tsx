@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { DoctorProvider } from "./contexts/DoctorContext";
 import Auth from "./pages/Auth";
 import DoctorHome from "./pages/DoctorHome";
 import Dashboard from "./pages/Dashboard";
@@ -23,20 +24,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Auth />} />
-          <Route path="/doctor/home" element={<DoctorHome />} />
-          <Route path="/doctor/dashboard" element={<Dashboard />} />
-          <Route path="/doctor/patients" element={<Patients />} />
-          <Route path="/doctor/patients/new" element={<NewPatient />} />
-          <Route path="/doctor/patients/:id" element={<PatientDetails />} />
-          <Route path="/doctor/new-prediction" element={<SelectPatient />} />
-          <Route path="/doctor/patients/:id/new-prediction" element={<NewPrediction />} />
-          <Route path="/doctor/model-info" element={<ModelInfo />} />
-          <Route path="/doctor/contact" element={<Contact />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <DoctorProvider>
+          <Routes>
+            <Route path="/" element={<Auth />} />
+            <Route path="/doctor/home" element={<DoctorHome />} />
+            <Route path="/doctor/dashboard" element={<Dashboard />} />
+            <Route path="/doctor/patients" element={<Patients />} />
+            <Route path="/doctor/patients/new" element={<NewPatient />} />
+            <Route path="/doctor/patients/:id" element={<PatientDetails />} />
+            <Route path="/doctor/new-prediction" element={<SelectPatient />} />
+            <Route path="/doctor/patients/:id/new-prediction" element={<NewPrediction />} />
+            <Route path="/doctor/model-info" element={<ModelInfo />} />
+            <Route path="/doctor/contact" element={<Contact />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </DoctorProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
