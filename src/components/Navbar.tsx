@@ -9,15 +9,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Eye, Home, LayoutDashboard, Users, Plus, Info, Mail, User, LogOut } from "lucide-react";
-import { mockDoctor } from "@/lib/mockData";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useDoctor } from "@/contexts/DoctorContext";
 
 export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { doctor, logout } = useDoctor();
 
-  const handleLogout = () => {
-    navigate("/");
+  const handleLogout = async () => {
+    await logout();
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -30,6 +31,11 @@ export function Navbar() {
     { path: "/doctor/model-info", label: "Model Info", icon: Info },
     { path: "/doctor/contact", label: "Contact", icon: Mail },
   ];
+
+  const getInitials = () => {
+    if (!doctor?.name) return "DR";
+    return doctor.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -68,17 +74,17 @@ export function Navbar() {
             <Button variant="ghost" size="sm" className="gap-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  {mockDoctor.name.split(" ").map((n) => n[0]).join("")}
+                  {getInitials()}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden sm:inline">{mockDoctor.name}</span>
+              <span className="hidden sm:inline">{doctor?.name || "Doctor"}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{mockDoctor.name}</p>
-                <p className="text-xs text-muted-foreground">{mockDoctor.email}</p>
+                <p className="text-sm font-medium">{doctor?.name || "Doctor"}</p>
+                <p className="text-xs text-muted-foreground">{doctor?.email || ""}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
