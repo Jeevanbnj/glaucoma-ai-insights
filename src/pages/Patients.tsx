@@ -1,20 +1,44 @@
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { mockPatients, mockPredictions } from "@/lib/mockData";
 import { UserPlus, Eye, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase, Patient } from "@/lib/supabase";
+import { useDoctor } from "@/contexts/DoctorContext";
+import { toast } from "sonner";
 
 export default function Patients() {
   const navigate = useNavigate();
+  const { doctor } = useDoctor();
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const getLastPrediction = (patientId: string) => {
-    const patientPredictions = mockPredictions
-      .filter(p => p.patientId === patientId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    return patientPredictions[0];
+  useEffect(() => {
+    if (doctor) {
+      fetchPatients();
+    }
+  }, [doctor]);
+
+  const fetchPatients = async () => {
+    if (!doctor) return;
+    
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from("patients")
+      .select("*")
+      .eq("doctor_id", doctor.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching patients:", error);
+      toast.error("Failed to load patients");
+    } else {
+      setPatients(data || []);
+    }
+    setIsLoading(false);
   };
 
   const getStageColor = (stage?: string) => {
@@ -55,43 +79,43 @@ export default function Patients() {
             <CardDescription>View and manage patient information</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Patient Name</TableHead>
-                  <TableHead>Patient Code</TableHead>
-                  <TableHead>Age</TableHead>
-                  <TableHead>Gender</TableHead>
-                  <TableHead>Last Stage</TableHead>
-                  <TableHead>Last Prediction</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockPatients.map((patient) => {
-                  const lastPrediction = getLastPrediction(patient.id);
-                  return (
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <p className="text-muted-foreground">Loading patients...</p>
+              </div>
+            ) : patients.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">No patients added yet</p>
+                <Button onClick={() => navigate("/doctor/patients/new")} className="gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Add Your First Patient
+                </Button>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Patient Name</TableHead>
+                    <TableHead>Patient Code</TableHead>
+                    <TableHead>Age</TableHead>
+                    <TableHead>Gender</TableHead>
+                    <TableHead>Risk Factors</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {patients.map((patient) => (
                     <TableRow key={patient.id}>
                       <TableCell className="font-medium">{patient.name}</TableCell>
-                      <TableCell>{patient.patientCode}</TableCell>
+                      <TableCell>{patient.patient_code}</TableCell>
                       <TableCell>{patient.age}</TableCell>
-                      <TableCell>{patient.gender}</TableCell>
+                      <TableCell className="capitalize">{patient.gender}</TableCell>
                       <TableCell>
-                        {lastPrediction ? (
-                          <Badge className={getStageColor(lastPrediction.predictedStage)}>
-                            {lastPrediction.predictedStage}
-                          </Badge>
+                        {patient.risk_factors ? (
+                          <span className="text-sm">{patient.risk_factors}</span>
                         ) : (
-                          <span className="text-muted-foreground text-sm">No predictions</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {lastPrediction ? (
-                          <span className="text-sm">
-                            {new Date(lastPrediction.createdAt).toLocaleDateString()}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
+                          <span className="text-muted-foreground text-sm">None listed</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
@@ -117,10 +141,10 @@ export default function Patients() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </main>
