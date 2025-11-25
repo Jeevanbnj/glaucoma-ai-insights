@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DoctorProvider } from "./contexts/DoctorContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import DoctorHome from "./pages/DoctorHome";
 import Dashboard from "./pages/Dashboard";
@@ -27,15 +28,15 @@ const App = () => (
         <DoctorProvider>
           <Routes>
             <Route path="/" element={<Auth />} />
-            <Route path="/doctor/home" element={<DoctorHome />} />
-            <Route path="/doctor/dashboard" element={<Dashboard />} />
-            <Route path="/doctor/patients" element={<Patients />} />
-            <Route path="/doctor/patients/new" element={<NewPatient />} />
-            <Route path="/doctor/patients/:id" element={<PatientDetails />} />
-            <Route path="/doctor/new-prediction" element={<SelectPatient />} />
-            <Route path="/doctor/patients/:id/new-prediction" element={<NewPrediction />} />
-            <Route path="/doctor/model-info" element={<ModelInfo />} />
-            <Route path="/doctor/contact" element={<Contact />} />
+            <Route path="/doctor/home" element={<ProtectedRoute><DoctorHome /></ProtectedRoute>} />
+            <Route path="/doctor/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/doctor/patients" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
+            <Route path="/doctor/patients/new" element={<ProtectedRoute><NewPatient /></ProtectedRoute>} />
+            <Route path="/doctor/patients/:id" element={<ProtectedRoute><PatientDetails /></ProtectedRoute>} />
+            <Route path="/doctor/new-prediction" element={<ProtectedRoute><SelectPatient /></ProtectedRoute>} />
+            <Route path="/doctor/patients/:id/new-prediction" element={<ProtectedRoute><NewPrediction /></ProtectedRoute>} />
+            <Route path="/doctor/model-info" element={<ProtectedRoute><ModelInfo /></ProtectedRoute>} />
+            <Route path="/doctor/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
