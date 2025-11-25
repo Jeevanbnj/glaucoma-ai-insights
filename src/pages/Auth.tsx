@@ -74,7 +74,8 @@ export default function Auth() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Registration successful! You can now log in.");
+      toast.success("Registration successful!");
+      navigate("/doctor/home");
     }
     setIsLoading(false);
   };
